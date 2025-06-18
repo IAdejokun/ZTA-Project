@@ -1,0 +1,46 @@
+STEP BY STEP FOR IMPLEMENTATION
+
+1. Complete System Setup:
+
+to run fastapi server - uvicorn app.main:app --reload
+
+Set up the frontend, backend, APIs, and database.
+
+Ensure the system logs all metrics outlined above.
+
+2. Run Simulations:
+
+Use the legacy IoT simulator to generate traffic in secure, insecure, and replay modes.
+
+3. Evaluate and Analyze:
+
+Use statistical methods to analyze the collected data and compare metrics.
+
+
+1. Microsegmentation in the Code
+Microsegmentation involves creating isolated security zones in a system to restrict access to resources based on strict identity and contextual policies.
+
+In your current implementation, microsegmentation is implicitly implemented at the API level via routes and access controls in the backend:
+
+Separate API Endpoints:
+
+/legacy/insecure: Accepts unauthenticated data, intended for devices operating in insecure mode.
+
+/legacy/secure: Accepts authenticated data, intended for devices with token-based security.
+
+/legacy/replay: Logs replay attacks, creating a boundary for replay detection.
+
+These endpoints act as isolated zones, each handling specific types of traffic (secure, insecure, and replay attacks).
+
+Authentication and Token Validation:
+
+The secure endpoint (/legacy/secure) restricts access to requests with valid tokens.
+
+By requiring tokens, the backend isolates "secure" devices from insecure ones, ensuring that only authenticated requests can reach sensitive areas.
+
+Logical Isolation in Simulator:
+
+The simulator groups devices based on their operational modes (insecure, secure, replay).
+
+Devices operating in "secure" mode communicate differently from those in "insecure" mode, reflecting segmented behavior.
+

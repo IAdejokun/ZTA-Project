@@ -1,0 +1,29 @@
+# Byte-compiled / optimized Python files
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environment
+venv/
+env/
+
+# Logs
+*.log
+
+# Environment variables
+.env
+
+# Simulator logs
+*.csv
+
+# PostgreSQL database files
+*.sql
+*.dump
+
+# Editor/IDE configuration
+.idea/
+.vscode/
+
+# System files
+.DS_Store
