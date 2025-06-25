@@ -133,6 +133,7 @@ class LegacyIoTDevice:
 
         try:
             response = requests.post(url, json=payload, headers=headers)
+            #print(f"Secure Request Payload: {payload}")
             return self.log_response(response, "secure", payload)
         except requests.exceptions.RequestException as e:
             print(f"[{self.device_id}] Secure request failed: {e}")
@@ -149,6 +150,7 @@ class LegacyIoTDevice:
 
         try:
             response = requests.post(url, json=payload, headers=headers)
+            #print(f"Replay Attack Payload: {payload}")
             return self.log_response(response, "replay", payload)
         except requests.exceptions.RequestException as e:
             print(f"[{self.device_id}] Replay attack failed: {e}")

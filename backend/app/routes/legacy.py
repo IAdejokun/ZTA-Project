@@ -1,10 +1,25 @@
 # Create the endpoints to handle legacy IoT device data
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Header
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.crud import create_device_log
+import hashlib
 import time
+
+
+DEVICE_SECRETS = {
+    "thermo-001": "d8a5fd2c",
+    "cam-001": "4b1e9f0a",
+    "lock-001": "7c3f6e91",
+}
+
+def generate_expected_token(device_id: str, shared_secret: str):
+    current_time = int(time.time())
+    timestamp = current_time // 300  # 5-minute window
+    token_data = f"{device_id}{shared_secret}{timestamp}"
+    token = hashlib.sha256(token_data.encode()).hexdigest()[:16]
+    return token
 
 router = APIRouter()
 
@@ -47,7 +62,10 @@ async def handle_insecure_request(data: dict, db: Session = Depends(get_db)):
 #Accepts authenticated requests.
 
 @router.post("/legacy/secure")
-async def handle_secure_request(data: dict, token: str, db: Session = Depends(get_db)):
+async def handle_secure_request(data: dict, x_access_token: str = Header(None), db: Session = Depends(get_db)):
+    # print("Received Payload:", data)
+    # print("Received Token:", token)
+
     """Handle authenticated data."""
     
     # Use time.time() at the beginning and end of the function 
@@ -56,8 +74,12 @@ async def handle_secure_request(data: dict, token: str, db: Session = Depends(ge
     
     start_time = time.time()  # record the start time
     
-    # Mock token validation
-    if token != "valid_token":
+    device_id = data.get("device_id")
+    shared_secret = DEVICE_SECRETS.get(device_id)
+    if not shared_secret:
+        raise HTTPException(status_code=403, detail="Unknown device")
+    expected_token = generate_expected_token(device_id, shared_secret)
+    if x_access_token != expected_token:
         raise HTTPException(status_code=403, detail="Invalid token")
 
     # Process and log the request
@@ -81,35 +103,32 @@ async def handle_secure_request(data: dict, token: str, db: Session = Depends(ge
 #to handle replay attack detection
 #Logs replay attacks.
 @router.post("/legacy/replay")
-async def handle_replay_attack(data: dict, token: str, db: Session = Depends(get_db)):
+async def handle_replay_attack(data: dict, x_access_token: str = Header(None), db: Session = Depends(get_db)):
     """Simulate detection of a replay attack."""
-    
-    # Use time.time() at the beginning and end of the function 
-    # to measure how long it takes to process the request.
-    # time is measured in seconds.
-    
+
     start_time = time.time()  # record the start time
-    
-    # Mock replay detection
-    if token == "reused_token":
+
+    device_id = data.get("device_id")
+    shared_secret = DEVICE_SECRETS.get(device_id)
+    if not shared_secret:
+        raise HTTPException(status_code=403, detail="Unknown device")
+    expected_token = generate_expected_token(device_id, shared_secret)
+    # If the token is not the expected one, it's a replay or invalid
+    if x_access_token != expected_token:
         raise HTTPException(status_code=409, detail="Replay attack detected")
 
-
     # Process and log the request
-    # In a real scenario, you would check if the token has been used before.
     log_data = {
-        "device_id": data.get("device_id"),
+        "device_id": device_id,
         "device_type": data.get("device_type"),
         "mode": "replay",
         "status_code": 200,
         "payload_size": len(str(data)),
     }
-    
+
     end_time = time.time()  # record the end time
     log_data["response_time"] = end_time - start_time
-    
-    # Create the log with response time in the database
+
     create_device_log(db, log_data)
-    
-    
+
     return {"message": "Replay attack logged", "data": data}
