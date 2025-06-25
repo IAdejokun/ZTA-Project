@@ -188,11 +188,21 @@ class LegacyIoTFleetSimulator:
 
     def create_typical_legacy_fleet(self):
         """
-        Add a sample set of legacy devices to the fleet.
+        Fetch devices from the backend and add them to the simulator fleet.
         """
-        self.add_device(LegacyIoTDevice("thermo-001", "thermostat", "d8a5fd2c"))
-        self.add_device(LegacyIoTDevice("cam-001", "camera", "4b1e9f0a"))
-        self.add_device(LegacyIoTDevice("lock-001", "lock", "7c3f6e91"))
+        try:
+            response = requests.get("http://localhost:8000/api/devices")  # Replace with your actual endpoint
+            response.raise_for_status()  # Raise an error for bad responses
+            devices = response.json()  # Parse JSON response
+            for device in devices:
+                self.add_device(LegacyIoTDevice(
+                    device_id=device["device_id"],
+                    device_type=device["device_type"],
+                    shared_secret="shared_secret",  # Replace or map if needed
+                    firmware_version="1.0.0"  # Default firmware version
+                ))
+        except requests.exceptions.RequestException as e:
+            print(f"Error fetching devices from backend: {e}")
 
     def run_simulation_cycle(self):
         """
