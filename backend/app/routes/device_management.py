@@ -1,11 +1,8 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, status
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from app.database import get_db
 from app.models import Device as DeviceModel #used to import the SQLAlchemy model for devices
-
-# Create a router for device management
-router = APIRouter()
 
 # Schema for validating device data
 class Device(BaseModel):
@@ -13,6 +10,12 @@ class Device(BaseModel):
     device_type: str
     mode: str
 
+    class Config:
+        orm_mode = True
+ 
+# Create a router for device management
+router = APIRouter()       
+        
 # Fetch all devices
 @router.get("/devices")
 async def get_devices(db: Session = Depends(get_db)):

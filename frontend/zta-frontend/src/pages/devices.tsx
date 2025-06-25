@@ -19,8 +19,11 @@ import {
   AppBar,
   Toolbar,
   TextField,
+  Snackbar,
+  CircularProgress,
+  Alert,
 } from "@mui/material";
-import axios from "../api/axios"; // Import Axios instance
+import axios from "../api/axios"; // Axios instance
 
 type Device = {
   device_id: string;
@@ -36,44 +39,64 @@ const Devices = () => {
     device_type: "thermostat",
     mode: "insecure",
   }); // State for new device
+  const [loading, setLoading] = useState(false); // Loading state
+  const [errorMessage, setErrorMessage] = useState<string | null>(null); // Error message state
+  const [successMessage, setSuccessMessage] = useState<string | null>(null); // Success message state
 
   // Fetch devices from the backend
-  useEffect(() => {
-    async function fetchDevices() {
-      try {
-        const response = await axios.get("/devices"); // Replace with API endpoint
-        setDevices(response.data);
-      } catch (error) {
-        console.error("Error fetching devices:", error);
-      }
+  const fetchDevices = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get("/devices");
+      setDevices(response.data);
+    } catch {
+      setErrorMessage("Failed to fetch devices. Please try again.");
+    } finally {
+      setLoading(false);
     }
+  };
+
+  useEffect(() => {
     fetchDevices();
   }, []);
 
   // Add a new device to the backend
   const handleAddDevice = async () => {
     try {
-      await axios.post("/devices", newDevice); // Replace with API endpoint
-      setDevices([...devices, newDevice]);
-      setOpen(false);
-      setNewDevice({
-        device_id: "",
-        device_type: "thermostat",
-        mode: "insecure",
-      });
-    } catch (error) {
-      console.error("Error adding device:", error);
+      await axios.post("/devices", newDevice);
+      setSuccessMessage("Device added successfully!");
+      fetchDevices(); // Re-fetch devices
+      handleCloseDialog(); // Close dialog
+    } catch {
+      setErrorMessage("Failed to add device. Please try again.");
     }
   };
 
   // Remove a device from the backend
   const handleRemoveDevice = async (device_id: string) => {
     try {
-      await axios.delete(`/devices/${device_id}`); // Replace with API endpoint
-      setDevices(devices.filter((device) => device.device_id !== device_id));
-    } catch (error) {
-      console.error("Error removing device:", error);
+      await axios.delete(`/devices/${device_id}`);
+      setSuccessMessage("Device removed successfully!");
+      fetchDevices(); // Re-fetch devices
+    } catch {
+      setErrorMessage("Failed to remove device. Please try again.");
     }
+  };
+
+  // Close dialog and reset newDevice state
+  const handleCloseDialog = () => {
+    setOpen(false);
+    setNewDevice({
+      device_id: "",
+      device_type: "thermostat",
+      mode: "insecure",
+    });
+  };
+
+  // Close Snackbar notifications
+  const handleCloseSnackbar = () => {
+    setErrorMessage(null);
+    setSuccessMessage(null);
   };
 
   return (
@@ -119,39 +142,49 @@ const Devices = () => {
       </Box>
 
       {/* Device Table */}
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Device ID</TableCell>
-              <TableCell>Device Type</TableCell>
-              <TableCell>Mode</TableCell>
-              <TableCell>Actions</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {devices.map((device, index) => (
-              <TableRow key={index}>
-                <TableCell>{device.device_id}</TableCell>
-                <TableCell>{device.device_type}</TableCell>
-                <TableCell>{device.mode}</TableCell>
-                <TableCell>
-                  <Button
-                    variant="contained"
-                    color="secondary"
-                    onClick={() => handleRemoveDevice(device.device_id)}
-                  >
-                    Remove
-                  </Button>
-                </TableCell>
+      {loading ? (
+        <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
+          <CircularProgress />
+        </Box>
+      ) : devices.length === 0 ? (
+        <Typography variant="h6" align="center" sx={{ mt: 4, color: "gray" }}>
+          No devices found. Add a new device to get started.
+        </Typography>
+      ) : (
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Device ID</TableCell>
+                <TableCell>Device Type</TableCell>
+                <TableCell>Mode</TableCell>
+                <TableCell>Actions</TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+            </TableHead>
+            <TableBody>
+              {devices.map((device, index) => (
+                <TableRow key={index}>
+                  <TableCell>{device.device_id}</TableCell>
+                  <TableCell>{device.device_type}</TableCell>
+                  <TableCell>{device.mode}</TableCell>
+                  <TableCell>
+                    <Button
+                      variant="contained"
+                      color="secondary"
+                      onClick={() => handleRemoveDevice(device.device_id)}
+                    >
+                      Remove
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
 
       {/* Add Device Dialog */}
-      <Dialog open={open} onClose={() => setOpen(false)}>
+      <Dialog open={open} onClose={handleCloseDialog}>
         <DialogTitle>Add New Device</DialogTitle>
         <DialogContent>
           <TextField
@@ -191,7 +224,7 @@ const Devices = () => {
           </Select>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpen(false)} color="secondary">
+          <Button onClick={handleCloseDialog} color="secondary">
             Cancel
           </Button>
           <Button onClick={handleAddDevice} color="primary">
@@ -199,6 +232,23 @@ const Devices = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Snackbar Notifications */}
+      <Snackbar
+        open={!!errorMessage || !!successMessage}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+      >
+        {errorMessage ? (
+          <Alert onClose={handleCloseSnackbar} severity="error">
+            {errorMessage}
+          </Alert>
+        ) : (
+          <Alert onClose={handleCloseSnackbar} severity="success">
+            {successMessage}
+          </Alert>
+        )}
+      </Snackbar>
     </Box>
   );
 };

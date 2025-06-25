@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from app.routes.device_management import router as device_management_router
 from app.routes.legacy import router as legacy_router
 from app.database import Base, engine
@@ -12,6 +13,21 @@ from app.database import Base, engine
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title = "Legacy IOT ZTA Gateway")
+
+# Configure CORS
+
+origins = [
+    "http://localhost:5173",  # React app
+]
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,  # Allows requests from the React app
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all HTTP methods
+    allow_headers=["*"],  # Allows all headerS
+)
 
 #register routers
 

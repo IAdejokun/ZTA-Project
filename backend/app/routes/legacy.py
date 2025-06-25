@@ -19,6 +19,9 @@ def generate_expected_token(device_id: str, shared_secret: str):
     timestamp = current_time // 300  # 5-minute window
     token_data = f"{device_id}{shared_secret}{timestamp}"
     token = hashlib.sha256(token_data.encode()).hexdigest()[:16]
+    print(f"Backend: Device ID = {device_id}, Shared Secret = {shared_secret}")
+    print(f"Backend: Current Time = {current_time}, Timestamp = {timestamp}")
+    print(f"Backend: Token Data = {token_data}, Expected Token = {token}")
     return token
 
 router = APIRouter()

@@ -24,7 +24,8 @@ class LegacyIoTDevice:
         self.firmware_version = firmware_version
         self.token = None
         self.last_token_time = 0
-
+        self.sensor_data = self._initialize_sensor_data()
+        
         # Initialize device-specific sensor data
         self.sensor_data = self._initialize_sensor_data()
 
@@ -72,6 +73,9 @@ class LegacyIoTDevice:
         token = hashlib.sha256(token_data.encode()).hexdigest()[:16]  # Truncate for simplicity
         self.token = token
         self.last_token_time = current_time
+        print(f"Simulator: Device ID = {self.device_id}, Shared Secret = {self.shared_secret}")
+        print(f"Simulator: Current Time = {current_time}, Timestamp = {timestamp}")
+        print(f"Simulator: Token Data = {token_data}, Token = {token}")
         return token
 
     def simulate_sensor_reading(self):
@@ -182,27 +186,25 @@ class LegacyIoTFleetSimulator:
         self.gateway_url = gateway_url
         self.devices = []
 
-    def add_device(self, device):
-        """Add a legacy IoT device to the fleet."""
-        self.devices.append(device)
-
-    def create_typical_legacy_fleet(self):
+    def fetch_devices_from_backend(self):
         """
         Fetch devices from the backend and add them to the simulator fleet.
         """
         try:
-            response = requests.get("http://localhost:8000/api/devices")  # Replace with your actual endpoint
-            response.raise_for_status()  # Raise an error for bad responses
-            devices = response.json()  # Parse JSON response
+            response = requests.get(f"http://{self.gateway_url}/api/devices")
+            response.raise_for_status()
+            devices = response.json()
             for device in devices:
-                self.add_device(LegacyIoTDevice(
+                self.devices.append(LegacyIoTDevice(
                     device_id=device["device_id"],
                     device_type=device["device_type"],
-                    shared_secret="shared_secret",  # Replace or map if needed
-                    firmware_version="1.0.0"  # Default firmware version
+                    shared_secret="shared_secret",  # Replace as necessary
+                    firmware_version="1.0.0"
                 ))
+            print(f"Fetched {len(self.devices)} devices from the backend.")
         except requests.exceptions.RequestException as e:
-            print(f"Error fetching devices from backend: {e}")
+            print(f"Error fetching devices: {e}")
+
 
     def run_simulation_cycle(self):
         """
@@ -234,5 +236,5 @@ class LegacyIoTFleetSimulator:
 
 if __name__ == "__main__":
     simulator = LegacyIoTFleetSimulator("localhost:8000")
-    simulator.create_typical_legacy_fleet()
+    simulator.fetch_devices_from_backend()
     simulator.run_continuous_simulation(cycles=5, interval=30)
