@@ -12,6 +12,22 @@ import {
   Pie,
   Cell,
 } from "recharts";
+import {
+  AppBar,
+  Toolbar,
+  Button,
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+} from "@mui/material";
 
 // Sample data for charts
 const latencyData = [
@@ -35,129 +51,166 @@ const COLORS = ["#0088FE", "#FF8042"];
 
 const Dashboard = () => {
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      {/* Header */}
-      <h1 className="text-3xl font-bold text-center text-blue-700 mb-6">
-        Dashboard - System Performance and Security Metrics
-      </h1>
+    <Box sx={{ minHeight: "100vh", bgcolor: "#f5f5f5", p: 4 }}>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+     <AppBar position="static" color="primary" sx={{ mb: 4 }}>
+            <Toolbar>
+              <Typography variant="h6" sx={{ flexGrow: 1 }}>
+                IoT Device Management
+              </Typography>
+              <Button
+                color="inherit"
+                onClick={() => (window.location.href = "/devices")}
+              >
+                Devices
+              </Button>
+              <Button color="inherit" onClick={() => (window.location.href = "/")}>
+                Home
+              </Button>
+            </Toolbar>
+          </AppBar>
+
+      {/* Header */}
+      <Typography variant="h4" align="center" color="primary" gutterBottom>
+        Dashboard - System Performance and Security Metrics
+      </Typography>
+
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", md: "1fr 1fr", lg: "1fr 1fr 1fr" },
+          gap: 4,
+          maxWidth: "1200px",
+          mx: "auto",
+        }}
+      >
         {/* Latency Chart */}
-        <div className="bg-white rounded-lg shadow p-4">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">
-            Latency (ms)
-          </h3>
-          <ResponsiveContainer width="100%" height={250}>
-            <LineChart data={latencyData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <Line
-                type="monotone"
-                dataKey="insecure"
-                stroke="#FF8042"
-                name="Insecure"
-              />
-              <Line
-                type="monotone"
-                dataKey="secure"
-                stroke="#0088FE"
-                name="Secure"
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
+        <Card>
+          <CardContent>
+            <Typography variant="h6" align="center" gutterBottom>
+              Latency (ms)
+            </Typography>
+            <ResponsiveContainer width="100%" height={250}>
+              <LineChart data={latencyData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Line
+                  type="monotone"
+                  dataKey="insecure"
+                  stroke="#FF8042"
+                  name="Insecure"
+                />
+                <Line
+                  type="monotone"
+                  dataKey="secure"
+                  stroke="#0088FE"
+                  name="Secure"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
 
         {/* Throughput Chart */}
-        <div className="bg-white rounded-lg shadow p-4">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">
-            Throughput (Requests per Second)
-          </h3>
-          <ResponsiveContainer width="100%" height={250}>
-            <BarChart data={throughputData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="requests" fill="#00C49F" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
+        <Card>
+          <CardContent>
+            <Typography variant="h6" align="center" gutterBottom>
+              Throughput (Requests per Second)
+            </Typography>
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart data={throughputData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="requests" fill="#00C49F" />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
 
         {/* Attack Detection Chart */}
-        <div className="bg-white rounded-lg shadow p-4">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">
-            Attack Detection Rate
-          </h3>
-          <ResponsiveContainer width="100%" height={250}>
-            <PieChart>
-              <Pie
-                data={attackData}
-                dataKey="value"
-                nameKey="name"
-                cx="50%"
-                cy="50%"
-                outerRadius={80}
-                label
-              >
-                {attackData.map((_, index) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={COLORS[index % COLORS.length]}
-                  />
-                ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
+        <Card>
+          <CardContent>
+            <Typography variant="h6" align="center" gutterBottom>
+              Attack Detection Rate
+            </Typography>
+            <ResponsiveContainer width="100%" height={250}>
+              <PieChart>
+                <Pie
+                  data={attackData}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  label
+                >
+                  {attackData.map((_, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={COLORS[index % COLORS.length]}
+                    />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </Box>
 
       {/* Table Section */}
-      <div className="bg-white rounded-lg shadow p-6 mt-10 max-w-7xl mx-auto">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">
+      <Box
+        sx={{
+          mt: 6,
+          maxWidth: "1200px",
+          mx: "auto",
+          bgcolor: "#fff",
+          boxShadow: 1,
+          borderRadius: 2,
+        }}
+      >
+        <Typography variant="h6" align="center" gutterBottom sx={{ p: 2 }}>
           Metrics Table
-        </h3>
-        <table className="table-auto w-full border-collapse border border-gray-300">
-          <thead>
-            <tr className="bg-gray-200">
-              <th className="border border-gray-300 px-4 py-2">Metric</th>
-              <th className="border border-gray-300 px-4 py-2">Value</th>
-              <th className="border border-gray-300 px-4 py-2">Unit</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td className="border border-gray-300 px-4 py-2">
-                Average Latency (Insecure)
-              </td>
-              <td className="border border-gray-300 px-4 py-2">200</td>
-              <td className="border border-gray-300 px-4 py-2">ms</td>
-            </tr>
-            <tr>
-              <td className="border border-gray-300 px-4 py-2">
-                Average Latency (Secure)
-              </td>
-              <td className="border border-gray-300 px-4 py-2">250</td>
-              <td className="border border-gray-300 px-4 py-2">ms</td>
-            </tr>
-            <tr>
-              <td className="border border-gray-300 px-4 py-2">Throughput</td>
-              <td className="border border-gray-300 px-4 py-2">100</td>
-              <td className="border border-gray-300 px-4 py-2">RPS</td>
-            </tr>
-            <tr>
-              <td className="border border-gray-300 px-4 py-2">
-                Attack Detection Rate
-              </td>
-              <td className="border border-gray-300 px-4 py-2">98%</td>
-              <td className="border border-gray-300 px-4 py-2">%</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+        </Typography>
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Metric</TableCell>
+                <TableCell>Value</TableCell>
+                <TableCell>Unit</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              <TableRow>
+                <TableCell>Average Latency (Insecure)</TableCell>
+                <TableCell>200</TableCell>
+                <TableCell>ms</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>Average Latency (Secure)</TableCell>
+                <TableCell>250</TableCell>
+                <TableCell>ms</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>Throughput</TableCell>
+                <TableCell>100</TableCell>
+                <TableCell>RPS</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>Attack Detection Rate</TableCell>
+                <TableCell>98%</TableCell>
+                <TableCell>%</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Box>
+    </Box>
   );
 };
 
