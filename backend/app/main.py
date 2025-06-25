@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from app.routes.device_management import router as device_management_router
 from app.routes.legacy import router as legacy_router
 from app.database import Base, engine
 
@@ -12,4 +13,7 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title = "Legacy IOT ZTA Gateway")
 
+#register routers
+
 app.include_router(legacy_router, prefix="/api", tags=["legacy"])
+app.include_router(device_management_router, prefix="/api", tags=["device_management"])
