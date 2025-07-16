@@ -23,8 +23,9 @@ import {
   CircularProgress,
   Alert,
 } from "@mui/material";
-import axios from "../api/axios"; // Axios instance
+import axios from "../api/axios";
 
+// ✅ Remove shared_secret from the type
 type Device = {
   device_id: string;
   device_type: string;
@@ -32,18 +33,21 @@ type Device = {
 };
 
 const Devices = () => {
-  const [devices, setDevices] = useState<Device[]>([]); // State for devices
-  const [open, setOpen] = useState(false); // State for Add Device dialog
+  const [devices, setDevices] = useState<Device[]>([]);
+  const [open, setOpen] = useState(false);
   const [newDevice, setNewDevice] = useState<Device>({
     device_id: "",
     device_type: "thermostat",
     mode: "insecure",
-  }); // State for new device
-  const [loading, setLoading] = useState(false); // Loading state
-  const [errorMessage, setErrorMessage] = useState<string | null>(null); // Error message state
-  const [successMessage, setSuccessMessage] = useState<string | null>(null); // Success message state
+  });
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  // Fetch devices from the backend
+  useEffect(() => {
+    fetchDevices(); 
+  }, []);
+
   const fetchDevices = async () => {
     setLoading(true);
     try {
@@ -56,34 +60,32 @@ const Devices = () => {
     }
   };
 
-  useEffect(() => {
-    fetchDevices();
-  }, []);
-
-  // Add a new device to the backend
   const handleAddDevice = async () => {
     try {
-      await axios.post("/devices", newDevice);
+      // ✅ Only send device_id, type, and mode — backend generates shared_secret
+      await axios.post("/devices", {
+        device_id: newDevice.device_id,
+        device_type: newDevice.device_type,
+        mode: newDevice.mode,
+      });
       setSuccessMessage("Device added successfully!");
-      fetchDevices(); // Re-fetch devices
-      handleCloseDialog(); // Close dialog
+      fetchDevices();
+      handleCloseDialog();
     } catch {
       setErrorMessage("Failed to add device. Please try again.");
     }
   };
 
-  // Remove a device from the backend
   const handleRemoveDevice = async (device_id: string) => {
     try {
       await axios.delete(`/devices/${device_id}`);
       setSuccessMessage("Device removed successfully!");
-      fetchDevices(); // Re-fetch devices
+      fetchDevices();
     } catch {
       setErrorMessage("Failed to remove device. Please try again.");
     }
   };
 
-  // Close dialog and reset newDevice state
   const handleCloseDialog = () => {
     setOpen(false);
     setNewDevice({
@@ -93,7 +95,6 @@ const Devices = () => {
     });
   };
 
-  // Close Snackbar notifications
   const handleCloseSnackbar = () => {
     setErrorMessage(null);
     setSuccessMessage(null);
@@ -101,7 +102,6 @@ const Devices = () => {
 
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "#f5f5f5", p: 4 }}>
-      {/* Navigation Bar */}
       <AppBar position="static" color="primary">
         <Toolbar>
           <Typography variant="h6" sx={{ flexGrow: 1 }}>
@@ -119,7 +119,6 @@ const Devices = () => {
         </Toolbar>
       </AppBar>
 
-      {/* Header */}
       <Typography
         variant="h4"
         align="center"
@@ -130,7 +129,6 @@ const Devices = () => {
         Devices Management
       </Typography>
 
-      {/* Add Device Button */}
       <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
         <Button
           variant="contained"
@@ -141,7 +139,6 @@ const Devices = () => {
         </Button>
       </Box>
 
-      {/* Device Table */}
       {loading ? (
         <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
           <CircularProgress />
@@ -183,7 +180,6 @@ const Devices = () => {
         </TableContainer>
       )}
 
-      {/* Add Device Dialog */}
       <Dialog open={open} onClose={handleCloseDialog}>
         <DialogTitle>Add New Device</DialogTitle>
         <DialogContent>
@@ -233,7 +229,6 @@ const Devices = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Snackbar Notifications */}
       <Snackbar
         open={!!errorMessage || !!successMessage}
         autoHideDuration={6000}

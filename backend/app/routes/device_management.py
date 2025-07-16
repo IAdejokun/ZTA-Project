@@ -3,6 +3,11 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from app.database import get_db
 from app.models import Device as DeviceModel #used to import the SQLAlchemy model for devices
+import secrets
+
+# Create a router for device management
+router = APIRouter()   
+
 
 # Schema for validating device data
 class Device(BaseModel):
@@ -12,10 +17,7 @@ class Device(BaseModel):
 
     class Config:
         orm_mode = True
- 
-# Create a router for device management
-router = APIRouter()       
-        
+            
 # Fetch all devices
 @router.get("/devices")
 async def get_devices(db: Session = Depends(get_db)):
@@ -28,10 +30,30 @@ async def add_device(device: Device, db: Session = Depends(get_db)):
     """Add a new device."""
     if db.query(DeviceModel).filter(DeviceModel.device_id == device.device_id).first():
         raise HTTPException(status_code=400, detail="Device ID already exists")
-    new_device = DeviceModel(**device.dict())
+    
+    shared_secret = secrets.token_hex(4)  # Generate a random shared secret
+    
+    new_device = DeviceModel(
+        device_id=device.device_id,
+        device_type=device.device_type,
+        mode=device.mode,
+        shared_secret=shared_secret  # Assuming shared_secret is a field in DeviceModel
+    )
+    
+    
     db.add(new_device)
     db.commit()
-    return {"message": "Device added successfully", "device": new_device}
+    db.refresh(new_device)
+
+    return {
+        "message": "Device added successfully",
+        "device": {
+            "device_id": new_device.device_id,
+            "device_type": new_device.device_type,
+            "mode": new_device.mode,
+            "shared_secret": new_device.shared_secret  # optional to return
+        }
+    }
 
 # Delete a device
 @router.delete("/devices/{device_id}")

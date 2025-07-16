@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routes.device_management import router as device_management_router
 from app.routes.legacy import router as legacy_router
+from app.routes.metrics import router as metrics_router
 from app.database import Base, engine
 
 
@@ -33,3 +34,4 @@ app.add_middleware(
 
 app.include_router(legacy_router, prefix="/api", tags=["legacy"])
 app.include_router(device_management_router, prefix="/api", tags=["device_management"])
+app.include_router(metrics_router, prefix="/api", tags=["dashboard_metrics"])
