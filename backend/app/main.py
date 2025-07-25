@@ -27,7 +27,7 @@ app.add_middleware(
     allow_origins=origins,  # Allows requests from the React app
     allow_credentials=True,
     allow_methods=["*"],  # Allows all HTTP methods
-    allow_headers=["*"],  # Allows all headerS
+    allow_headers=["*"],  # Allows all headers
 )
 
 #register routers
