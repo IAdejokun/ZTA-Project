@@ -145,15 +145,19 @@ class LegacyIoTFleetSimulator:
             print(f"Error fetching devices: {e}")
 
     def run_simulation_cycle(self):
-        """
-        Run a simulation cycle based on each device's mode.
-        """
+        """Run a simulation cycle based on each device's mode."""
         for device in self.devices:
             if device.mode == "insecure":
                 device.send_insecure_request(self.gateway_url, "api/legacy/insecure")
             elif device.mode == "secure":
                 device.send_secure_request(self.gateway_url, "api/legacy/secure")
             elif device.mode == "replay":
+                # Generate a valid token once so it can be reused for the replay
+                # attack. Without this step ``send_replay_attack`` would send a
+                # ``None`` token on the first cycle, resulting in an invalid
+                # request rather than a replay of a previously issued token.
+                if device.token is None:
+                    device.send_secure_request(self.gateway_url, "api/legacy/secure")
                 device.send_replay_attack(self.gateway_url, "api/legacy/replay")
 
 
