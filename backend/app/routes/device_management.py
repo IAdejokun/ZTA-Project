@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends, status
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from app.database import get_db
-from app.models import Device as DeviceModel #used to import the SQLAlchemy model for devices
+from app.models import Device as DeviceModel  # Used to import the SQLAlchemy model for devices
 import secrets
 
 # Create a router for device management
