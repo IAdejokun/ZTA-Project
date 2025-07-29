@@ -18,8 +18,8 @@ import {
   CircularProgress,
 } from "@mui/material";
 import {
-  LineChart,
-  Line,
+  // LineChart,
+  // Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -35,8 +35,11 @@ import {
 type SummaryMetrics = {
   latencies: { [key: string]: number };
   requests: { [key: string]: number };
-  attack_detection_rate: string;
+  attack_detection_rate: number; // ⬅️ number now, not string
+  replay_attempts: number;
   total_logs: number;
+  throughput_rps: number;
+  window_seconds: number;
 };
 
 const COLORS = ["#0088FE", "#FF8042"];
@@ -81,19 +84,13 @@ const Dashboard = () => {
       : [];
 
   const attackData =
-    summary?.attack_detection_rate &&
-    !isNaN(parseFloat(summary.attack_detection_rate))
+    typeof summary?.attack_detection_rate === "number"
       ? [
-          {
-            name: "Detected",
-            value: parseFloat(summary.attack_detection_rate),
-          },
-          {
-            name: "Undetected",
-            value: 100 - parseFloat(summary.attack_detection_rate),
-          },
+          { name: "Detected", value: summary.attack_detection_rate },
+          { name: "Undetected", value: 100 - summary.attack_detection_rate },
         ]
       : [];
+
 
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "#f5f5f5", p: 4 }}>
@@ -156,8 +153,26 @@ const Dashboard = () => {
               mt: 4,
             }}
           >
-            {/* Latency Chart */}
+            {/* Latency Chart (Bar as requested by supervisor) */}
             <Card>
+              <CardContent>
+                <Typography variant="h6" align="center" gutterBottom>
+                  Average Latency (sec) per Mode
+                </Typography>
+                <ResponsiveContainer width="100%" height={250}>
+                  <BarChart data={latencyData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Bar dataKey="value" fill="#8884d8" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            {/* Latency Chart */}
+            {/* <Card>
               <CardContent>
                 <Typography variant="h6" align="center" gutterBottom>
                   Average Latency (sec)
@@ -172,7 +187,7 @@ const Dashboard = () => {
                   </LineChart>
                 </ResponsiveContainer>
               </CardContent>
-            </Card>
+            </Card> */}
 
             {/* Throughput Chart */}
             <Card>
@@ -268,6 +283,16 @@ const Dashboard = () => {
                       {summary?.attack_detection_rate ?? "—"}
                     </TableCell>
                     <TableCell>%</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Throughput</TableCell>
+                    <TableCell>{summary?.throughput_rps ?? "—"}</TableCell>
+                    <TableCell>req/s</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Replay Attempts Detected</TableCell>
+                    <TableCell>{summary?.replay_attempts ?? "—"}</TableCell>
+                    <TableCell>count</TableCell>
                   </TableRow>
                 </TableBody>
               </Table>

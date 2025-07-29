@@ -1,4 +1,5 @@
-//import React from "react";
+import { useState, useEffect } from "react";
+import axios from "../api/axios";
 
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
@@ -6,8 +7,34 @@ import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 
-
 const Home = () => {
+  const [summary, setSummary] = useState<{
+    total_logs: number;
+    attack_detection_rate: string | number;
+  } | null>(null);
+
+  const [loading, setLoading] = useState(true);
+
+  const fetchSummary = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get("/metrics/summary");
+      setSummary(res.data);
+    } catch (err) {
+      console.error("Error fetching summary metrics:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSummary();
+  }, []);
+
+  const unauthorizedRate = summary
+    ? (100 - Number(summary.attack_detection_rate)).toFixed(2)
+    : 0;
+
   return (
     <Box component="section" style={{ padding: "2rem" }}>
       {/* Title Section */}
@@ -55,7 +82,6 @@ const Home = () => {
         <Button
           variant="contained"
           onClick={() => (window.location.href = "/dashboard")}
-          className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg shadow-lg"
           style={{ fontSize: "1.2em" }}
         >
           Go to Dashboard
@@ -64,7 +90,6 @@ const Home = () => {
         <Button
           variant="contained"
           onClick={() => (window.location.href = "/devices")}
-          className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg shadow-lg"
           style={{ fontSize: "1.2em" }}
           color="success"
         >
@@ -74,7 +99,6 @@ const Home = () => {
 
       {/* Metrics Overview */}
       <Box
-        className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-6xl"
         style={{
           margin: "0 auto",
           padding: "2rem",
@@ -84,9 +108,8 @@ const Home = () => {
           gap: "1.5rem",
         }}
       >
-        {/* Metric Cards */}
+        {/* Total Requests */}
         <Card
-          className="bg-white rounded-lg shadow p-6 text-center"
           style={{
             display: "flex",
             flexDirection: "column",
@@ -115,13 +138,13 @@ const Home = () => {
                 color: "blue",
               }}
             >
-              1,234
+              {loading ? "Loading..." : summary?.total_logs ?? "0"}
             </Typography>
           </CardContent>
         </Card>
 
+        {/* Attack Detection Rate */}
         <Card
-          className="bg-white rounded-lg shadow p-6 text-center"
           style={{
             display: "flex",
             flexDirection: "column",
@@ -150,13 +173,15 @@ const Home = () => {
                 color: "green",
               }}
             >
-              98%
+              {loading
+                ? "Loading..."
+                : `${summary?.attack_detection_rate ?? 0}%`}
             </Typography>
           </CardContent>
         </Card>
 
+        {/* Unauthorized Access Rate */}
         <Card
-          className="bg-white rounded-lg shadow p-6 text-center"
           style={{
             display: "flex",
             flexDirection: "column",
@@ -166,7 +191,6 @@ const Home = () => {
           <CardContent>
             <Typography
               variant="h3"
-              className="text-xl font-semibold text-gray-800"
               style={{
                 textAlign: "center",
                 marginTop: "1rem",
@@ -186,7 +210,7 @@ const Home = () => {
                 color: "red",
               }}
             >
-              5%
+              {loading ? "Loading..." : `${unauthorizedRate}%`}
             </Typography>
           </CardContent>
         </Card>
